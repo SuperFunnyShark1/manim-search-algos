@@ -61,7 +61,6 @@ class GraphGenerator:
     def generate_new_nodes(self, current_node: dict, nodes_list, queue, current_layer: int) -> None:
         
         
-        current_node_ID = current_node["node_ID"]
         current_position = current_node["position"]
         
         
