@@ -22,7 +22,9 @@ class GraphGenerator:
         
         initial_node = {
             "node_ID": 0,
-            "position": (0, 0) }
+            "position": (0, 0),
+            "neighbors": []
+            }
         
         
         nodes_list = [initial_node]
@@ -72,19 +74,31 @@ class GraphGenerator:
         angle = -20              # degrees
         
         
+        
         for i in range(new_nodes_amount):
             
             
             angle = angle + self.get_random_angle(current_layer)
 
-            new_position = self.get_position_of_new_node(current_position, current_layer, angle)
+            new_position = self.get_position_of_new_node(current_position, angle)
+            
+            
+            self.current_ID += 1
             
             
             new_node = {
-                "node_ID": self.current_ID + (i + 1),
-                "position": new_position }
+                "node_ID": self.current_ID,
+                "position": new_position,
+                "neighbors": [current_node["node_ID"]]
+                }
             
-            self.current_ID += 1
+
+
+            current_node["neighbors"].append(new_node["node_ID"])
+
+            
+            
+            
             
             
             new_nodes_list.append(new_node)
@@ -103,7 +117,7 @@ class GraphGenerator:
             return random.randint(3, 6)
         
         
-        return random.randint(1, 4)
+        return random.randint(1, 3)
     
         
     
@@ -113,14 +127,15 @@ class GraphGenerator:
             return random.uniform(0, 360)
         
         
-        return random.uniform(-30, 45)
-    
-    
-    def get_change_in_position(self, current_angle: float,  new_angle: float, distance: float) -> tuple:
+        return random.uniform(-45, 45)
+
+
+    def get_change_in_position(self, current_angle: float,  new_angle: float, distance: float, ) -> tuple:
+        
         
         delta_x = distance * np.cos(np.radians(new_angle + current_angle)) 
           
-        delta_y = distance * np.sin(np.radians(new_angle + current_angle))
+        delta_y = distance * np.sin(np.radians(new_angle  + current_angle))
         
         return (delta_x, delta_y)
     
@@ -132,17 +147,16 @@ class GraphGenerator:
         x, y = node_position
         
         return np.degrees(np.arctan2(y, x))
-    
-    
-    def get_position_of_new_node(self, current_position: tuple, current_layer: int, angle: float) -> tuple:
-        
-            
+
+
+    def get_position_of_new_node(self, current_position: tuple, angle: float) -> tuple:
+
         distance = random.uniform(1, 3)
         
-        current_angle = self.get_angle_of_node(current_position)
+        current_angle = self.get_angle_of_node(current_position) 
         
         
-        delta_x, delta_y = self.get_change_in_position(current_angle, angle, distance)
+        delta_x, delta_y = self.get_change_in_position(current_angle, angle , distance)
         
         new_x = current_position[0] + delta_x
         new_y = current_position[1] + delta_y
@@ -159,15 +173,45 @@ class GraphGenerator:
         print("Nodes generated: \n")
         
         for node in self.nodes_list:
-            print(f"Node ID: {node['node_ID']}, Position: {round(node['position'][0], 2)}, {round(node['position'][1], 2)}")
-            
+            print(f"Node ID: {node['node_ID']}, neighbors: {node['neighbors']} , Position: {round(node['position'][0], 2)}, {round(node['position'][1], 2)}")
+
         x_coords = [node['position'][0] for node in self.nodes_list]
         y_coords = [node['position'][1] for node in self.nodes_list]
 
         plt.scatter(x_coords, y_coords)
 
-        for i, node in enumerate(self.nodes_list):
+        node_dict = {node['node_ID']: node for node in self.nodes_list}
+        for node in self.nodes_list:
+            
+            color = (random.random(), random.random(), random.random())
+            linewidth = random.uniform(0.6, 1.4)
+            alpha = 0.4
+            
+            if random.random() < 0.5:
+                            linestyle = '--'  # dashed
+            else:
+                linestyle = (0, (3, 5, 1, 5, 1, 5))  # dashdotdotted
+                
+                linewidth = random.uniform(0.8, 1.4)
+                alpha = 0.6
+                            
+                            
+            for neighbor_id in node['neighbors']:
+                if neighbor_id > node['node_ID']:
+                    neighbor = node_dict.get(neighbor_id)
+                    if neighbor:
+                        x_values = [node['position'][0], neighbor['position'][0]]
+                        y_values = [node['position'][1], neighbor['position'][1]]
+                        # Randomly choose between dashed and dashdotdotted
+                    
+                        plt.plot(x_values, y_values, linestyle=linestyle, color=color, alpha= alpha, linewidth=linewidth)
+
+        for node in self.nodes_list:
             plt.text(node['position'][0], node['position'][1], str(node['node_ID']))
+
+
+            
+            
 
         plt.show()
 
